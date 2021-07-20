@@ -1,0 +1,65 @@
+variables:
+    PROJECT_NAME: "WebApp"
+    BUILD_IMAGE: "mcr.microsoft.com/dotnet/core/sdk:3.1"
+    RUNTIME_IMAGE: "mcr.microsoft.com/dotnet/core/aspnet:3.1.1-alpine3.10"
+    WORKING_DIRECTORY: "/var/www"
+    WEB1_SERVER: "10.18.200.143"
+    WEB2_SERVER: "10.18.200.144"
+    WEB1_SERVER_SSH: "22"
+    WEB2_SERVER_SSH: "222"
+
+stages:
+  - build
+  - test
+  - release
+
+#before_script
+
+build:
+  stage: build
+  image: $BUILD_IMAGE
+  only:
+    - master
+  script:
+    - cd $PROJECT_NAME
+    - dotnet restore --interactive
+    - dotnet build --configuration Release
+    - sudo dotnet publish --configuration Release --output $WORKING_DIRECTORY/compiled/$PROJECT_NAME/app #--output ../../publish/ # #
+  artifacts:
+    paths:
+      - ./publish/*
+    expire_in: 1 week
+  tags:
+  - netcore
+
+test:
+  stage: test
+  image: $BUILD_IMAGE
+  only:
+    - master
+  script:
+    - cd $PROJECT_NAME.Tests
+    - dotnet test #--test-adapter-path:. --logger:"junit;LogFilePath=../../UnitTestResult.xml"
+    
+  #artifacts:
+  #  paths:
+  #    - ./UnitTestResult.xml
+  #  reports:
+  #    junit: ./UnitTestResult.xml
+  tags:
+  - netcore
+
+release:
+  stage: release
+  only:
+    - master
+  script:
+    ##- sudo rsync -avz --progress -a $WORKING_DIRECTORY/compiled/$PROJECT_NAME/app root@$WORKING_DIRECTORY/$PROJECT_NAME/
+    - rsync -avz --delete --progress -a -e "ssh -p $WEB1_SERVER_SSH" $WORKING_DIRECTORY/compiled/$PROJECT_NAME/app root@$WEB1_SERVER:$WORKING_DIRECTORY/$PROJECT_NAME/
+    - ssh -p $WEB1_SERVER_SSH root@$WEB1_SERVER "docker restart $PROJECT_NAME"
+    - ssh -p $WEB2_SERVER_SSH root@$WEB2_SERVER "ls -l"
+    - rsync -avz --delete --progress -a -e "ssh -p $WEB2_SERVER_SSH" $WORKING_DIRECTORY/compiled/$PROJECT_NAME/app root@$WEB2_SERVER:$WORKING_DIRECTORY/$PROJECT_NAME/
+    - ssh -p $WEB2_SERVER_SSH root@$WEB2_SERVER "docker restart $PROJECT_NAME"
+    - echo "Deployed"
+  tags:
+  - netcore
