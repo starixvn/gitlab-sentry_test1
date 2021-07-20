@@ -1,7 +1,7 @@
 variables:
     PROJECT_NAME: "WebApp"
-    BUILD_IMAGE: "mcr.microsoft.com/dotnet/core/sdk:3.1"
-    RUNTIME_IMAGE: "mcr.microsoft.com/dotnet/core/aspnet:3.1.1-alpine3.10"
+    BUILD_IMAGE: "registry.nexdev.net:5050/docker/dotnet/core/sdk:3.1"
+    RUNTIME_IMAGE: "registry.nexdev.net:5050/docker/dotnet/core/aspnet:3.1"
     WORKING_DIRECTORY: "/var/www"
     WEB1_SERVER: "10.18.200.143"
     WEB2_SERVER: "10.18.200.144"
