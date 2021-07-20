@@ -30,7 +30,7 @@ build:
       - ./publish/*
     expire_in: 1 week
   tags:
-  - netcore
+  - docker
 
 test:
   stage: test
@@ -47,7 +47,7 @@ test:
   #  reports:
   #    junit: ./UnitTestResult.xml
   tags:
-  - netcore
+  - docker
 
 release:
   stage: release
@@ -62,4 +62,4 @@ release:
     - ssh -p $WEB2_SERVER_SSH root@$WEB2_SERVER "docker restart $PROJECT_NAME"
     - echo "Deployed"
   tags:
-  - netcore
+  - docker
